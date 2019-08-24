@@ -228,11 +228,11 @@ class AutoTypecastFilterTest < Test::Unit::TestCase
 
         messages = [
             # Object
-            { 'k': [ 'v', { 'k' => 'v' }, 0, 0.1, 1.0, 1, true, false, nil ] },
+            { 'k': [ 'v', { 'k': 'v' }, 0, 0.1, 1.0, 1, true, false, nil ] },
         ]
         expected = [
             # Object
-            { 'k': [ 'v', { 'k' => 'v' }, 0, 0.1, 1.0, 1, true, false, nil ] },
+            { 'k': [ 'v', { 'k': 'v' }, 0, 0.1, 1.0, 1, true, false, nil ] },
         ]
 
         filtered_records = filter(conf, messages)
@@ -244,11 +244,11 @@ class AutoTypecastFilterTest < Test::Unit::TestCase
 
         messages = [
             # Object
-            { 'k': { 'k' => 'v' } },
+            { 'k': { 'k': 'v' } },
         ]
         expected = [
             # Object
-            { 'k': { 'k' => 'v' } },
+            { 'k': { 'k': 'v' } },
         ]
 
         filtered_records = filter(conf, messages)
@@ -289,18 +289,36 @@ class AutoTypecastFilterTest < Test::Unit::TestCase
         assert_equal(expected, filtered_records)
     end
 
-    def test_input_numeric_in_array_deep
+    def test_input_numeric_in_array_maxdepth_3
         conf = CONFIG + %[
-            deep_dive
+            maxdepth 3
         ]
 
         messages = [
             # Object
-            { 'k': [ '0', '0.1', '1.0', '1', [ '0', '0.1', '1.0', '1' ] ] },
+            { 'k': [ [ '0', '0.1', '1.0', '1' ] ] },
         ]
         expected = [
             # Object
-            { 'k': [ 0, 0.1, 1.0, 1, [ 0, 0.1, 1.0, 1 ] ] },
+            { 'k': [ [ 0, 0.1, 1.0, 1 ] ] },
+        ]
+
+        filtered_records = filter(conf, messages)
+        assert_equal(expected, filtered_records)
+    end
+
+    def test_input_numeric_in_array_disabled_maxdepth
+        conf = CONFIG + %[
+            maxdepth 0
+        ]
+
+        messages = [
+            # Object
+            { 'k': [ [ [ [ '0', '0.1', '1.0', '1' ] ] ], [ '0', '0.1' ] ] },
+        ]
+        expected = [
+            # Object
+            { 'k': [ [ [ [ 0, 0.1, 1.0, 1 ] ] ], [ 0, 0.1 ] ] },
         ]
 
         filtered_records = filter(conf, messages)
@@ -312,29 +330,65 @@ class AutoTypecastFilterTest < Test::Unit::TestCase
 
         messages = [
             # Object
-            { 'k' => [ '0', '0.1', '1.0', '1', { 'k1' => [ '0', '0.1', '1.0', '1' ], 'k2' => '1.0' } ] },
+            { 'k': [ '0', '0.1', '1.0', '1', { 'k1': [ '0', '0.1', '1.0', '1' ], 'k2': '1.0' } ] },
         ]
         expected = [
             # Object
-            { 'k' => [ '0', '0.1', '1.0', '1', { 'k1' => [ '0', '0.1', '1.0', '1' ], 'k2' => '1.0' } ] },
+            { 'k': [ '0', '0.1', '1.0', '1', { 'k1': [ '0', '0.1', '1.0', '1' ], 'k2': '1.0' } ] },
         ]
 
         filtered_records = filter(conf, messages)
         assert_equal(expected, filtered_records)
     end
 
-    def test_input_numeric_in_hash_deep
+    def test_input_numeric_in_hash_maxdepth_3
         conf = CONFIG + %[
-            deep_dive
+            maxdepth 3
         ]
 
         messages = [
             # Object
-            { 'k' => [ '0', '0.1', '1.0', '1', { 'k1' => [ '0', '0.1', '1.0', '1' ], 'k2' => '1.0' } ] },
+            { 'k': { 'k': { 'k': '0.0' } } },
         ]
         expected = [
             # Object
-            { 'k' => [ 0, 0.1, 1.0, 1, { 'k1' => [ 0, 0.1, 1.0, 1 ], 'k2' => 1.0 } ] },
+            { 'k': { 'k': { 'k': 0.0 } } },
+        ]
+
+        filtered_records = filter(conf, messages)
+        assert_equal(expected, filtered_records)
+    end
+
+    def test_input_numeric_in_hath_disabled_maxdepth
+        conf = CONFIG + %[
+            maxdepth 0
+        ]
+
+        messages = [
+            # Object
+            { 'k': { 'k1': { 'k': { 'k': { 'k': '0.1' } } }, 'k2': { 'k': '1.0' } } }
+        ]
+        expected = [
+            # Object
+            { 'k': { 'k1': { 'k': { 'k': { 'k': 0.1 } } }, 'k2': { 'k': 1.0 } } }
+        ]
+
+        filtered_records = filter(conf, messages)
+        assert_equal(expected, filtered_records)
+    end
+
+    def test_input_numeric_in_array_hash
+        conf = CONFIG + %[
+            maxdepth 0
+        ]
+
+        messages = [
+            # Object
+            { 'k': { 'k': { 'k': [ { 'k': { 'k1': '0', 'k2': '0.1', 'k3': '1.0', 'k4': '1' } } ] } } }
+        ]
+        expected = [
+            # Object
+            { 'k': { 'k': { 'k': [ { 'k': { 'k1': 0, 'k2': 0.1, 'k3': 1.0, 'k4': 1 } } ] } } }
         ]
 
         filtered_records = filter(conf, messages)

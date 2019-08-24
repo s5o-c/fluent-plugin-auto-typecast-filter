@@ -43,9 +43,13 @@ end
 
 module Fluent::Plugin
     class AutoTypecastFilter < Filter
+        DISABLED_MAXDEPTH = 0
+        DEFAULT_MAXDEPTH  = 1
+        SEARCHBASE_DEPTH  = DEFAULT_MAXDEPTH
+
         Fluent::Plugin.register_filter('auto_typecast', self)
 
-        config_param :deep_dive, :bool, default: false
+        config_param :maxdepth, :integer, default: DEFAULT_MAXDEPTH
 
         # def configure(conf)
         #     super
@@ -62,7 +66,7 @@ module Fluent::Plugin
         #     super
         # end
 
-        private def transform(x, k, v)
+        private def transform(x, k, v, d)
             y = String("#{v}")
 
             x[k] = y.to_numeric! if y.numeric?
@@ -71,23 +75,24 @@ module Fluent::Plugin
 
             x[k] = y.to_nil! if y.nil?
 
-            auto_typecast(v) if @deep_dive
+            auto_typecast(v, d.next)
         end
 
-        private def auto_typecast(x)
-            return x if ! x.kind_of?(Enumerable)
+        private def auto_typecast(x, d)
+            return x if (! x.kind_of?(Enumerable))
+            return x if (@maxdepth != DISABLED_MAXDEPTH && @maxdepth < d)
 
             x.each do |k, v|
-                transform(x, k, v)
+                transform(x, k, v, d)
             end if x.kind_of?(Hash)
 
             x.each_with_index do |v, k|
-                transform(x, k, v)
+                transform(x, k, v, d)
             end if x.kind_of?(Array)
         end
 
         def filter(tag, time, record)
-            auto_typecast(record)
+            auto_typecast(record, SEARCHBASE_DEPTH)
 
             record
         end
