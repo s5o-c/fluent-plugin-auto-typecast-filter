@@ -50,6 +50,7 @@ module Fluent::Plugin
         Fluent::Plugin.register_filter('auto_typecast', self)
 
         config_param :maxdepth, :integer, default: DEFAULT_MAXDEPTH
+        config_param :ignore_key_regexp, :regexp, default: nil
 
         # def configure(conf)
         #     super
@@ -67,13 +68,15 @@ module Fluent::Plugin
         # end
 
         private def transform(x, k, v, d)
-            y = String("#{v}")
+            if (! (@ignore_key_regexp && @ignore_key_regexp.match("#{k}")))
+                y = String("#{v}")
 
-            x[k] = y.to_numeric! if y.numeric?
+                x[k] = y.to_numeric! if y.numeric?
 
-            x[k] = y.to_boolean! if y.boolean?
+                x[k] = y.to_boolean! if y.boolean?
 
-            x[k] = y.to_nil! if y.nil?
+                x[k] = y.to_nil! if y.nil?
+            end
 
             auto_typecast(v, d.next)
         end
