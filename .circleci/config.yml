@@ -1,0 +1,18 @@
+version: 2.1
+executors:
+  executor:
+    docker:
+      - image: circleci/ruby:2.6.3
+jobs:
+  test:
+    executor: executor
+    steps:
+      - checkout
+      - run: gem install bundler -v 2.0.2
+      - run: bundle install --path vendor/bundle
+      - run: bundle exec rake test
+workflows:
+  version: 2
+  continuous-integration:
+    jobs:
+      - test

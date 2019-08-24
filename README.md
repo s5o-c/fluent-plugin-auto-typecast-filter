@@ -1,4 +1,4 @@
-# Fluent::Plugin::AutoTypecastFilter [![Gem Version](https://badge.fury.io/rb/fluent-plugin-auto-typecast-filter.svg)](https://badge.fury.io/rb/fluent-plugin-auto-typecast-filter)
+# Fluent::Plugin::AutoTypecastFilter [![CircleCI](https://circleci.com/gh/s5o-c/fluent-plugin-auto-typecast-filter/tree/master.svg?style=svg)](https://circleci.com/gh/s5o-c/fluent-plugin-auto-typecast-filter/tree/master) [![Gem Version](https://badge.fury.io/rb/fluent-plugin-auto-typecast-filter.svg)](https://badge.fury.io/rb/fluent-plugin-auto-typecast-filter)
 
 This plug-in helps to automatically cast and retransmit structured log data flowing through the Fluent network.
 
