@@ -1,35 +1,91 @@
-# Fluent::Plugin::AutoTypecastFilter
+# Fluent::Plugin::AutoTypecastFilter [![Gem Version](https://badge.fury.io/rb/fluent-plugin-auto-typecast-filter.svg)](https://badge.fury.io/rb/fluent-plugin-auto-typecast-filter)
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/fluent/plugin/auto/typecast/filter`. To experiment with that code, run `bin/console` for an interactive prompt.
+This plug-in helps to automatically cast and retransmit structured log data flowing through the Fluent network.
 
-TODO: Delete this and the text above, and describe your gem
+## Tested dependencies
+
+* fluentd v1.7.0
 
 ## Installation
 
-Add this line to your application's Gemfile:
-
-```ruby
-gem 'fluent-plugin-auto-typecast-filter'
+```sh
+gem install fluent-plugin-auto-typecast-filter
 ```
 
-And then execute:
+or
 
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install fluent-plugin-auto-typecast-filter
+```sh
+# for `fluent-gem` users:
+fluent-gem install fluent-plugin-auto-typecast-filter
+```
 
 ## Usage
 
-TODO: Write usage instructions here
+Basic usage in fluentd.conf:
 
-## Development
+```
+<filter any.tag.**>
+    @type auto_typecast
+</filter>
+```
 
-After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+## Parameters
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+| Parameter | Description | Default |
+---|---|---
+| maxdepth | Specifies the maximum level of nesting that is autocast. If **`0`** is specified, all nests are targeted. | 1 |
 
-## Contributing
+## Examples
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/s5o-c/fluent-plugin-auto-typecast-filter. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
+**Case 1:**
+
+```plain
+# CONFIG:
+maxdepth 0
+
+# INPUT:
+{ 'k': { 'k': { 'k': [ { 'k': {
+    'k0': 'string',
+    'k1': '20',
+    'k2': '1.0',
+    'k3': 'NULL',
+    'k4': 'true'
+} } ] } } }
+
+# FILTERED OUTPUT:
+{ 'k': { 'k': { 'k': [ { 'k': {
+    'k0': 'string',
+    'k1': 20,
+    'k2': 1.0,
+    'k3': null,
+    'k4': true
+} } ] } } }
+```
+
+**Case 2:**
+
+```plain
+# CONFIG:
+maxdepth 3
+
+# INPUT:
+{ 'k' : {
+    'k0': [ '10', '20', '30' ],
+    'k1': {
+        'k': [ '10', '20', '30' ]
+    }
+}
+
+# FILTERED OUTPUT:
+{ 'k' : {
+    'k0': [ 10, 20, 30 ]
+    'k1': {
+        'k': [ '10', '20', '30' ]
+    }
+}
+```
+
+## Copyright
+
+* Copyright (c) 2019- Shotaro Chiba
+* Apache License, Version 2.0
