@@ -31,9 +31,10 @@ Basic usage in fluentd.conf:
 
 ## Parameters
 
-| Parameter | Description | Default |
----|---|---
-| maxdepth | Specifies the maximum level of nesting that is autocast. If **`0`** is specified, all nests are targeted. | 1 |
+| Parameter | Description | Type | Default |
+---|---|---|---
+| `maxdepth` | Maximum level of nesting that is autocast. If **`0`** is specified, all nests are targeted. | Integer | `1` |
+| `ignore_key_regexp` | Regular expression to determine keys that are not subject to processing. | RegExp | `nil` |
 
 ## Examples
 

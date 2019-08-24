@@ -394,4 +394,61 @@ class AutoTypecastFilterTest < Test::Unit::TestCase
         filtered_records = filter(conf, messages)
         assert_equal(expected, filtered_records)
     end
+
+    def test_ignore_key_regexp_string
+        conf = CONFIG + %[
+            maxdepth 0
+            ignore_key_regexp /^[a-z]{1}[0-9]{1,}1$/
+        ]
+
+        messages = [
+            # Object
+            { 'k0000': '0.01', 'k0001': 'true', 'j0000': 'null', 'j0001': 'string' }
+        ]
+        expected = [
+            # Object
+            { 'k0000': 0.01, 'k0001': 'true', 'j0000': nil, 'j0001': 'string' }
+        ]
+
+        filtered_records = filter(conf, messages)
+        assert_equal(expected, filtered_records)
+    end
+
+    def test_ignore_key_regexp_array
+        conf = CONFIG + %[
+            maxdepth 0
+            ignore_key_regexp /^0$/
+        ]
+
+        messages = [
+            # Object
+            { 'k': [ [ '10', '20' ], [ [ '100', '200' ], [ [ '1000', '2000' ] ] ] ] }
+        ]
+        expected = [
+            # Object
+            { 'k': [ [ '10', 20 ], [ [ '100', 200 ], [ [ '1000', 2000 ] ] ] ] }
+        ]
+
+        filtered_records = filter(conf, messages)
+        assert_equal(expected, filtered_records)
+    end
+
+    def test_ignore_key_regexp_object
+        conf = CONFIG + %[
+            maxdepth 0
+            ignore_key_regexp /^[a-z]{1}[0-9]{1,}1$/
+        ]
+
+        messages = [
+            # Object
+            { 'k0001': [ { 'k0000': 'true', 'k0002': { 'j0001': 'null' } } ] }
+        ]
+        expected = [
+            # Object
+            { 'k0001': [ { 'k0000': true, 'k0002': { 'j0001': 'null' } } ] }
+        ]
+
+        filtered_records = filter(conf, messages)
+        assert_equal(expected, filtered_records)
+    end
 end
