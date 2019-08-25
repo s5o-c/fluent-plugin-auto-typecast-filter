@@ -52,10 +52,13 @@ module Fluent::Plugin
         config_param :maxdepth, :integer, default: DEFAULT_MAXDEPTH
         config_param :ignore_key_regexp, :regexp, default: nil
 
-        # def configure(conf)
-        #     super
-        #     # do the usual configuration here
-        # end
+        def configure(conf)
+            super
+
+            if @maxdepth < 0
+                raise Fluent::ConfigError, "`maxdepth` is too small: maxdepth = #{@maxdepth}"
+            end
+        end
 
         # def start
         #     super
