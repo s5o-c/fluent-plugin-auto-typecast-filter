@@ -451,4 +451,16 @@ class AutoTypecastFilterTest < Test::Unit::TestCase
         filtered_records = filter(conf, messages)
         assert_equal(expected, filtered_records)
     end
+
+    def test_maxdepth_negative
+        conf = CONFIG + %[
+            maxdepth -1
+        ]
+
+        messages = [ { 'k': nil } ]
+
+        assert_raise(Fluent::ConfigError) do
+            filtered_records = filter(conf, messages)
+        end
+    end
 end
